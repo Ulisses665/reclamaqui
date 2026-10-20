@@ -36,6 +36,8 @@ const PROFILES_KEY = "reclamaqui:profiles";
 const NOTIFICATIONS_KEY = "reclamaqui:notifications";
 const ACTIVE_PROFILE_KEY = "reclamaqui:active-profile";
 const ADMIN_SETUP_CODE = process.env.NEXT_PUBLIC_DEMO_ADMIN_CODE;
+const DEMO_ADMIN_EMAIL = "adm123@gmail.com";
+const DEMO_ADMIN_PASSWORD = "123456789";
 const categories = ["Estrutura", "Convivência", "Ensino", "Alimentação", "Acessibilidade", "Outro"];
 const statuses: ReportStatus[] = ["Em análise", "Em andamento", "Resolvida"];
 const emptyRegistration = { name: "", email: "", password: "", classGroup: "", role: "student", adminCode: "" };
@@ -107,21 +109,34 @@ export default function Home() {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      try {
-        const storedReports: unknown = JSON.parse(localStorage.getItem(REPORTS_KEY) ?? "[]");
-        const storedProfiles: unknown = JSON.parse(localStorage.getItem(PROFILES_KEY) ?? "[]");
-        const storedNotifications: unknown = JSON.parse(localStorage.getItem(NOTIFICATIONS_KEY) ?? "[]");
-        setReports(Array.isArray(storedReports) ? storedReports.filter(isReport) : []);
-        const loadedProfiles = Array.isArray(storedProfiles) ? storedProfiles.filter(isProfile) : [];
-        setProfiles(loadedProfiles);
-        setNotifications(Array.isArray(storedNotifications) ? storedNotifications.filter(isNotification) : []);
-        const savedProfileId = sessionStorage.getItem(ACTIVE_PROFILE_KEY);
-        setActiveProfileId(loadedProfiles.some((item) => item.id === savedProfileId) ? savedProfileId : null);
-      } catch {
-        setNotice("Não foi possível carregar os dados locais. Verifique o armazenamento do navegador.");
-      } finally {
-        setHydrated(true);
-      }
+      const initializeLocalData = async () => {
+        try {
+          const storedReports: unknown = JSON.parse(localStorage.getItem(REPORTS_KEY) ?? "[]");
+          const storedProfiles: unknown = JSON.parse(localStorage.getItem(PROFILES_KEY) ?? "[]");
+          const storedNotifications: unknown = JSON.parse(localStorage.getItem(NOTIFICATIONS_KEY) ?? "[]");
+          setReports(Array.isArray(storedReports) ? storedReports.filter(isReport) : []);
+          const loadedProfiles = Array.isArray(storedProfiles) ? storedProfiles.filter(isProfile) : [];
+          const hasDemoAdmin = loadedProfiles.some((item) => item.email.toLocaleLowerCase("pt-BR") === DEMO_ADMIN_EMAIL);
+          const initializedProfiles = hasDemoAdmin ? loadedProfiles : [...loadedProfiles, {
+            id: crypto.randomUUID(),
+            name: "Administrador",
+            email: DEMO_ADMIN_EMAIL,
+            passwordHash: await hashPassword(DEMO_ADMIN_PASSWORD),
+            classGroup: "Administração",
+            role: "admin" as const,
+            verified: true,
+          }];
+          setProfiles(initializedProfiles);
+          setNotifications(Array.isArray(storedNotifications) ? storedNotifications.filter(isNotification) : []);
+          const savedProfileId = sessionStorage.getItem(ACTIVE_PROFILE_KEY);
+          setActiveProfileId(initializedProfiles.some((item) => item.id === savedProfileId) ? savedProfileId : null);
+        } catch {
+          setNotice("Não foi possível carregar os dados locais. Verifique o armazenamento do navegador.");
+        } finally {
+          setHydrated(true);
+        }
+      };
+      void initializeLocalData();
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
