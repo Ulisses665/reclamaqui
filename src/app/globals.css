@@ -154,9 +154,10 @@ button { cursor: pointer; }
 .team-photo-placeholder strong { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; background: #fff; color: var(--green); font: 32px Georgia, "Times New Roman", serif; }
 .team-photo-placeholder small { font-size: 10px; font-weight: 600; }
 .team-photo-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-.team-card-copy { padding: 18px 20px 20px; }
+.team-card-copy { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 18px 20px 20px; }
 .team-card-copy span { color: #87968a; font-size: 9px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; }
 .team-card-copy h2 { margin: 7px 0 0; font: 25px Georgia, "Times New Roman", serif; color: #3d4b42; }
+.team-photo-remove { min-height: 30px; border: 1px solid #e4eae4; border-radius: 5px; padding: 0 9px; background: #fff; color: #9a6657; font-size: 9px; white-space: nowrap; }
 .modal-backdrop { position: fixed; z-index: 10; inset: 0; display: grid; place-items: center; padding: 20px; background: #23342b70; overflow-y: auto; }
 .modal { position: relative; width: min(100%, 480px); max-height: min(90vh, 780px); overflow-y: auto; padding: 30px; border: 1px solid #edf0e9; border-radius: 12px; background: white; box-shadow: 0 20px 70px #1d332629; }
 .modal-close { position: absolute; top: 12px; right: 15px; border: 0; background: transparent; color: #89938c; font-size: 25px; line-height: 1; }
