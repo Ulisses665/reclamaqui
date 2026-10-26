@@ -38,6 +38,8 @@ const ACTIVE_PROFILE_KEY = "reclamaqui:active-profile";
 const ADMIN_SETUP_CODE = process.env.NEXT_PUBLIC_DEMO_ADMIN_CODE;
 const DEMO_ADMIN_EMAIL = "adm123@gmail.com";
 const DEMO_ADMIN_PASSWORD = "123456789";
+const DEMO_STUDENT_EMAIL = "aluno1287@gmail.com";
+const DEMO_STUDENT_PASSWORD = "987654321";
 const categories = ["Estrutura", "Convivência", "Ensino", "Alimentação", "Acessibilidade", "Outro"];
 const statuses: ReportStatus[] = ["Em análise", "Em andamento", "Resolvida"];
 const emptyRegistration = { name: "", email: "", password: "", classGroup: "", role: "student", adminCode: "" };
@@ -116,16 +118,28 @@ export default function Home() {
           const storedNotifications: unknown = JSON.parse(localStorage.getItem(NOTIFICATIONS_KEY) ?? "[]");
           setReports(Array.isArray(storedReports) ? storedReports.filter(isReport) : []);
           const loadedProfiles = Array.isArray(storedProfiles) ? storedProfiles.filter(isProfile) : [];
-          const hasDemoAdmin = loadedProfiles.some((item) => item.email.toLocaleLowerCase("pt-BR") === DEMO_ADMIN_EMAIL);
-          const initializedProfiles = hasDemoAdmin ? loadedProfiles : [...loadedProfiles, {
-            id: crypto.randomUUID(),
-            name: "Administrador",
-            email: DEMO_ADMIN_EMAIL,
-            passwordHash: await hashPassword(DEMO_ADMIN_PASSWORD),
-            classGroup: "Administração",
-            role: "admin" as const,
-            verified: true,
-          }];
+          const demoAdminExists = loadedProfiles.some((item) => item.email.toLocaleLowerCase("pt-BR") === DEMO_ADMIN_EMAIL);
+          const demoStudentExists = loadedProfiles.some((item) => item.email.toLocaleLowerCase("pt-BR") === DEMO_STUDENT_EMAIL);
+          const initializedProfiles = [...loadedProfiles,
+            ...(demoAdminExists ? [] : [{
+              id: crypto.randomUUID(),
+              name: "Administrador",
+              email: DEMO_ADMIN_EMAIL,
+              passwordHash: await hashPassword(DEMO_ADMIN_PASSWORD),
+              classGroup: "Administração",
+              role: "admin" as const,
+              verified: true,
+            }]),
+            ...(demoStudentExists ? [] : [{
+              id: crypto.randomUUID(),
+              name: "Aluno 1287",
+              email: DEMO_STUDENT_EMAIL,
+              passwordHash: await hashPassword(DEMO_STUDENT_PASSWORD),
+              classGroup: "Turma demonstração",
+              role: "student" as const,
+              verified: true,
+            }]),
+          ];
           setProfiles(initializedProfiles);
           setNotifications(Array.isArray(storedNotifications) ? storedNotifications.filter(isNotification) : []);
           const savedProfileId = sessionStorage.getItem(ACTIVE_PROFILE_KEY);
@@ -328,6 +342,7 @@ export default function Home() {
         <nav className="top-nav" aria-label="Navegação principal">
           <a className="nav-link active" href="#inicio">Mural</a>
           <a className="nav-link" href="#como-funciona">Como funciona</a>
+          <a className="nav-link" href="/alunos">Responsáveis</a>
         </nav>
         {profile ? (
           <div className="account-controls">
