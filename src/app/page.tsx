@@ -176,7 +176,7 @@ export default function Home() {
   }, [notice]);
 
   const visibleReports = useMemo(() => {
-    if (!profile || (profile.role === "student" && !profile.verified)) return [];
+    if (!profile) return [];
     return reports.filter((report) => {
       const belongsToViewer = profile.role === "admin" || report.ownerId === profile.id;
       const matchesCategory = filter === "Todas" || report.category === filter;
@@ -226,7 +226,7 @@ export default function Home() {
       setRegistration(emptyRegistration);
       setNotice(isAdmin
         ? "Perfil ADMIN de demonstração criado neste navegador."
-        : "Perfil criado. Aguarde a verificação da escola antes de registrar reclamações.");
+        : "Perfil criado. Você já pode registrar reclamações, mesmo enquanto aguarda a verificação da escola.");
     } catch {
       setNotice("Não foi possível criar o perfil. Verifique se este navegador oferece suporte à criptografia.");
     }
@@ -260,8 +260,8 @@ export default function Home() {
 
   function createReport(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!profile || profile.role !== "student" || !profile.verified) {
-      setNotice("Somente alunos com perfil verificado podem registrar reclamações.");
+    if (!profile || profile.role !== "student") {
+      setNotice("Somente perfis de aluno podem registrar reclamações.");
       return;
     }
     const item: Report = {
@@ -283,7 +283,7 @@ export default function Home() {
 
   function verifyProfile(student: Profile) {
     setProfiles((current) => current.map((item) => item.id === student.id ? { ...item, verified: true } : item));
-    addNotification(student.id, "Seu perfil foi verificado pela escola. Você já pode registrar reclamações.");
+    addNotification(student.id, "Seu perfil foi verificado pela escola.");
     setNotice(`Perfil de ${student.name} marcado como verificado nesta demonstração.`);
   }
 
@@ -367,11 +367,11 @@ export default function Home() {
           <span className="eyebrow"><span className="live-dot" /> UM ESPAÇO DE ESCUTA</span>
           <h1>Uma escola melhor<br />começa com <em>uma conversa.</em></h1>
           <p>Compartilhe o que pode melhorar. Acompanhe cada situação com respeito, cuidado e transparência.</p>
-          {profile?.role === "student" && profile.verified && (
+          {profile?.role === "student" && (
             <button className="primary-button" onClick={() => setShowReportForm(true)}><span>＋</span> Fazer uma reclamação</button>
           )}
           {!profile && <p className="hero-note">Entre ou crie um perfil para acessar suas reclamações.</p>}
-          {profile?.role === "student" && !profile.verified && <p className="hero-note">Seu perfil aguarda verificação da escola. Reclamações ficam indisponíveis até a aprovação.</p>}
+          {profile?.role === "student" && !profile.verified && <p className="hero-note">Seu perfil aguarda verificação da escola, mas você já pode registrar reclamações.</p>}
           {profile?.role === "admin" && <p className="hero-note">Acesso ADMIN de demonstração: você pode verificar perfis e acompanhar todas as reclamações.</p>}
         </div>
         <div className="hero-art" aria-hidden="true">
@@ -448,10 +448,10 @@ export default function Home() {
         ) : (
           <div className="empty-state">
             <span>✳</span>
-            <h3>{!profile ? "Entre para acessar o mural" : profile.role === "student" && !profile.verified ? "Perfil em análise" : "Nenhuma reclamação por aqui"}</h3>
-            <p>{!profile ? "As reclamações são privadas para alunos e exigem um perfil." : profile.role === "student" && !profile.verified ? "A escola precisa verificar seu perfil antes que você possa registrar uma reclamação." : profile.role === "admin" ? "Ainda não há reclamações registradas neste navegador." : "Quando você registrar uma reclamação, poderá acompanhá-la nesta área privada."}</p>
+            <h3>{!profile ? "Entre para acessar o mural" : "Nenhuma reclamação por aqui"}</h3>
+            <p>{!profile ? "As reclamações são privadas para alunos e exigem um perfil." : profile.role === "admin" ? "Ainda não há reclamações registradas neste navegador." : "Quando você registrar uma reclamação, poderá acompanhá-la nesta área privada."}</p>
             {!profile && <button className="text-button" onClick={() => setAccountModal("login")}>Entrar <span>→</span></button>}
-            {profile?.role === "student" && profile.verified && <button className="text-button" onClick={() => setShowReportForm(true)}>Fazer uma reclamação <span>→</span></button>}
+            {profile?.role === "student" && <button className="text-button" onClick={() => setShowReportForm(true)}>Fazer uma reclamação <span>→</span></button>}
           </div>
         )}
       </section>
@@ -465,7 +465,7 @@ export default function Home() {
 
       {notice && <div className="toast" role="status">✓&nbsp; {notice}</div>}
 
-      {showReportForm && profile?.role === "student" && profile.verified && (
+      {showReportForm && profile?.role === "student" && (
         <div className="modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setShowReportForm(false); }}>
           <section className="modal" role="dialog" aria-modal="true" aria-labelledby="report-form-title">
             <button className="modal-close" aria-label="Fechar" onClick={() => setShowReportForm(false)}>×</button>
@@ -478,7 +478,7 @@ export default function Home() {
                 <label>Categoria<select value={form.category} onChange={(event) => setForm({ ...form, category: event.target.value })}>{categories.map((category) => <option key={category}>{category}</option>)}</select></label>
                 <label>Local<input required maxLength={80} placeholder="Ex.: pátio, sala 4" value={form.place} onChange={(event) => setForm({ ...form, place: event.target.value })} /></label>
               </div>
-              <p className="privacy-note">Perfil verificado: {profile.name}. O registro fica neste navegador e não é enviado à escola.</p>
+              <p className="privacy-note">Perfil de aluno: {profile.name}. O registro fica neste navegador e não é enviado à escola.</p>
               <button className="primary-button submit-button" type="submit">Registrar reclamação <span>→</span></button>
             </form>
           </section>
@@ -502,7 +502,7 @@ export default function Home() {
 
             {accountModal === "register" && <>
               <span className="eyebrow section-eyebrow">PERFIL ESCOLAR</span><h2 id="account-title">Criar perfil</h2>
-              <p className="modal-intro">O perfil de aluno ficará pendente até ser verificado por um ADMIN.</p>
+              <p className="modal-intro">O perfil de aluno ficará pendente até ser verificado por um ADMIN, mas isso não impede o registro de reclamações.</p>
               <form className="form-stack" onSubmit={createAccount}>
                 <label>Tipo de perfil<select value={registration.role} onChange={(event) => setRegistration({ ...registration, role: event.target.value })}><option value="student">Aluno</option><option value="admin">ADMIN da escola (demonstração)</option></select></label>
                 {registration.role === "admin" && <label>Código ADMIN da demonstração<input required type="password" autoComplete="off" value={registration.adminCode} onChange={(event) => setRegistration({ ...registration, adminCode: event.target.value })} /><small className="field-note">Configurado por NEXT_PUBLIC_DEMO_ADMIN_CODE. Esse código fica visível no aplicativo e não protege o acesso de verdade.</small></label>}
@@ -522,7 +522,7 @@ export default function Home() {
                 <span className="profile-avatar-large">{profile.name[0]?.toUpperCase()}</span>
                 <div><strong>{profile.name}</strong><span>{profile.email}</span><small>{profile.role === "admin" ? "ADMIN · demonstração" : profile.classGroup}</small></div>
               </div>
-              <div className="profile-warning">{profile.role === "admin" || profile.verified ? "Perfil marcado como verificado nesta demonstração." : "Perfil pendente: a escola precisa verificá-lo antes de você registrar reclamações."} O acesso não é seguro e os dados ficam apenas neste navegador.</div>
+              <div className="profile-warning">{profile.role === "admin" || profile.verified ? "Perfil marcado como verificado nesta demonstração." : "Perfil pendente de verificação. Você já pode registrar reclamações."} O acesso não é seguro e os dados ficam apenas neste navegador.</div>
               <div className="profile-actions"><button className="secondary-button" onClick={openProfileEditor}>Editar perfil</button><button className="text-button" onClick={signOut}>Sair</button></div>
             </>}
 

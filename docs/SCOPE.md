@@ -27,7 +27,6 @@ O desenvolvimento será feito em etapas, com componentes, estados e persistênci
 
 - As postagens devem permanecer disponíveis até que a escola resolva a situação relatada.
 - Cada pessoa deve conseguir acessar seu perfil usando uma senha.
-- Os alunos só poderão registrar reclamações usando um perfil criado e verificado pela escola.
 - Cada aluno poderá visualizar somente as próprias reclamações.
 - Usuários com perfil de ADMIN poderão visualizar todas as reclamações de todos os alunos.
 - Devem ser enviadas notificações à escola e aos estudantes.
